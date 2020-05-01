@@ -1,18 +1,15 @@
-import assertRevert from "openzeppelin-solidity/test/helpers/assertRevert";
+import assertRevert from 'openzeppelin-solidity/test/helpers/assertRevert';
 
-const Freyr = artifacts.require("./Freyr.sol");
+const Freyr = artifacts.require('./Freyr.sol');
 
-const crypto = require("crypto");
-const eutil = require("ethereumjs-util");
-
-let irisScoreProviderContractAddress;
-let irisScoreProviderInstance;
+const crypto = require('crypto');
+const eutil = require('ethereumjs-util');
 
 const testDataContent = '{"foo":"bar","baz":42}';
-//0x276bc9ec8730ad53e827c0467c00473a53337e2cb4b61ada24760a217fb1ef14
+// 0x276bc9ec8730ad53e827c0467c00473a53337e2cb4b61ada24760a217fb1ef14
 const testDataHash = eutil.bufferToHex(eutil.sha3(testDataContent));
-const testDataUri = "QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM";
-const testMetadata = "KEYWORDS";
+const testDataUri = 'QmUMqi1rr4Ad1eZ3ctsRUEmqK2U3CyZqpetUe51LB9GiAM';
+const testMetadata = 'KEYWORDS';
 const testMetaHash = eutil.bufferToHex(eutil.sha3(testMetadata));
 const testRootHash = eutil.bufferToHex(
   eutil.sha3(
@@ -20,7 +17,7 @@ const testRootHash = eutil.bufferToHex(
   )
 );
 
-contract("Freyr", accounts => {
+contract('Freyr', (accounts) => {
   const admin = accounts[0];
   const user = accounts[1];
   const provider1 = accounts[2];
@@ -28,11 +25,11 @@ contract("Freyr", accounts => {
   const nonUser = accounts[4];
   let instance;
 
-  beforeEach("deploy a new Freyr contract", async () => {
+  beforeEach('deploy a new Freyr contract', async () => {
     instance = await Freyr.new();
   });
-  describe("recover", () => {
-    it("should recover the signer address if sig is valid", async () => {
+  describe('recover', () => {
+    it('should recover the signer address if sig is valid', async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)));
       const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, msgHash));
       const recoveredAddr = await instance.recover(
@@ -43,7 +40,7 @@ contract("Freyr", accounts => {
       );
       assert.equal(recoveredAddr, provider1);
     });
-    it("should recover zero address if sig is bad", async () => {
+    it('should recover zero address if sig is bad', async () => {
       const msgHash = eutil.bufferToHex(eutil.sha3(crypto.randomBytes(2000)));
       const recoveredAddr = await instance.recover(
         msgHash,
@@ -54,8 +51,8 @@ contract("Freyr", accounts => {
       assert.equal(recoveredAddr, 0);
     });
   });
-  describe("add document by user", () => {
-    it("should allow a user to add a document", async () => {
+  describe('add document by user', () => {
+    it('should allow a user to add a document', async () => {
       const tx = await instance.addDocument(
         testDataHash,
         testMetadata,
@@ -63,7 +60,7 @@ contract("Freyr", accounts => {
         { from: user }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, "FreyrDocumentAdded");
+      assert.equal(tx.logs[0].event, 'FreyrDocumentAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -76,34 +73,34 @@ contract("Freyr", accounts => {
       assert.equal(storedDocument[3], testDataUri);
       assert.equal(storedDocument[4], timestamp);
     });
-    it("should not allow user to add same document twice", async () => {
+    it('should not allow user to add same document twice', async () => {
       await instance.addDocument(testDataHash, testMetadata, testDataUri, {
-        from: user
+        from: user,
       });
       // try submitting the file again
       await assertRevert(
         instance.addDocument(testDataHash, testMetadata, testDataUri, {
-          from: user
+          from: user,
         })
       );
     });
-    it("should reject if data hash or data uri is zero", async () => {
+    it('should reject if data hash or data uri is zero', async () => {
       // try zero data hash
       await assertRevert(
         instance.addDocument(0, testMetadata, testDataUri, {
-          from: user
+          from: user,
         })
       );
       // try zero data uri
       await assertRevert(
         instance.addDocument(testDataHash, testMetadata, 0, {
-          from: user
+          from: user,
         })
       );
     });
-    it("should allow a long dataUri", async () => {
+    it('should allow a long dataUri', async () => {
       const testLongDataUri = eutil.bufferToHex(
-        "https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar"
+        'https://www.centralService.com/cloud/storage/v1/b/example-bucket/o/foo%2f%3fbar'
       );
       const tx = await instance.addDocument(
         testDataHash,
@@ -118,11 +115,11 @@ contract("Freyr", accounts => {
     });
   });
 
-  describe("add signature", () => {
-    it("should allow adding valid signature", async () => {
+  describe('add signature', () => {
+    it('should allow adding valid signature', async () => {
       // add a file without any sig, by user
       await instance.addDocument(testDataHash, testMetadata, testDataUri, {
-        from: user
+        from: user,
       });
       // have provider1 sign the root hash
       const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash));
@@ -135,7 +132,7 @@ contract("Freyr", accounts => {
         { from: nonUser }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "FreyrDocumentSigAdded");
+      assert.equal(tx.logs[0].event, 'FreyrDocumentSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attester, provider1);
       // check state
@@ -143,10 +140,10 @@ contract("Freyr", accounts => {
       assert.equal(storedDocument[2], 2); // sig count
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should not allow adding the same sig twice", async () => {
+    it('should not allow adding the same sig twice', async () => {
       // add a file without any sig
       await instance.addDocument(testDataHash, testMetadata, testDataUri, {
-        from: user
+        from: user,
       });
       // have provider1 sign it
       const rsv = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash));
@@ -167,9 +164,9 @@ contract("Freyr", accounts => {
         )
       );
     });
-    it("should allow adding sigs from different providers", async () => {
+    it('should allow adding sigs from different providers', async () => {
       await instance.addDocument(testDataHash, testMetadata, testDataUri, {
-        from: user
+        from: user,
       });
       // have provider1 sign it
       const rsv1 = eutil.fromRpcSig(web3.eth.sign(provider1, testRootHash));
@@ -182,7 +179,7 @@ contract("Freyr", accounts => {
       );
       // check log
       assert.equal(tx1.logs.length, 1);
-      assert.equal(tx1.logs[0].event, "FreyrDocumentSigAdded");
+      assert.equal(tx1.logs[0].event, 'FreyrDocumentSigAdded');
       assert.equal(tx1.logs[0].args.dataHash, testDataHash);
       assert.equal(tx1.logs[0].args.attester, provider1);
       // have provider2 sign it
@@ -196,7 +193,7 @@ contract("Freyr", accounts => {
       );
       // check log
       assert.equal(tx2.logs.length, 1);
-      assert.equal(tx2.logs[0].event, "FreyrDocumentSigAdded");
+      assert.equal(tx2.logs[0].event, 'FreyrDocumentSigAdded');
       assert.equal(tx2.logs[0].args.dataHash, testDataHash);
       assert.equal(tx2.logs[0].args.attester, provider2);
       // check state
@@ -205,9 +202,9 @@ contract("Freyr", accounts => {
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
       assert.equal(await instance.sigExists(testDataHash, provider2), true);
     });
-    it("should allow adding another sig after provider added file", async () => {
+    it('should allow adding another sig after provider added file', async () => {
       await instance.addDocument(testDataHash, testMetadata, testDataUri, {
-        from: provider1
+        from: provider1,
       });
       // now have provider2 sign it
       const rsv2 = eutil.fromRpcSig(web3.eth.sign(provider2, testRootHash));
@@ -218,7 +215,7 @@ contract("Freyr", accounts => {
         rsv2.v,
         { from: nonUser }
       );
-      assert.equal(tx.logs[0].event, "FreyrDocumentSigAdded");
+      assert.equal(tx.logs[0].event, 'FreyrDocumentSigAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.attester, provider2);
       // check state
@@ -260,8 +257,8 @@ contract("Freyr", accounts => {
     //   );
     // });
   });
-  describe("add document by admin", () => {
-    it("should allow admin to add a document without attestation", async () => {
+  describe('add document by admin', () => {
+    it('should allow admin to add a document without attestation', async () => {
       const tx = await instance.addDocumentByAdmin(
         testDataHash,
         user,
@@ -271,7 +268,7 @@ contract("Freyr", accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 1);
-      assert.equal(tx.logs[0].event, "FreyrDocumentAdded");
+      assert.equal(tx.logs[0].event, 'FreyrDocumentAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
@@ -284,7 +281,7 @@ contract("Freyr", accounts => {
       assert.equal(storedDocument[3], testDataUri);
       assert.equal(storedDocument[4], timestamp);
     });
-    it("should allow admin to add a document with attestation", async () => {
+    it('should allow admin to add a document with attestation', async () => {
       const tx = await instance.addDocumentByAdmin(
         testDataHash,
         user,
@@ -294,11 +291,11 @@ contract("Freyr", accounts => {
         { from: admin }
       );
       assert.equal(tx.logs.length, 2);
-      assert.equal(tx.logs[0].event, "FreyrDocumentAdded");
+      assert.equal(tx.logs[0].event, 'FreyrDocumentAdded');
       assert.equal(tx.logs[0].args.dataHash, testDataHash);
       assert.equal(tx.logs[0].args.owner, user);
       assert.equal(tx.logs[0].args.metadata, testMetadata);
-      assert.equal(tx.logs[1].event, "FreyrDocumentSigAdded");
+      assert.equal(tx.logs[1].event, 'FreyrDocumentSigAdded');
       assert.equal(tx.logs[1].args.dataHash, testDataHash);
       assert.equal(tx.logs[1].args.attester, provider1);
       // check state
@@ -311,7 +308,7 @@ contract("Freyr", accounts => {
       assert.equal(storedDocument[4], timestamp);
       assert.equal(await instance.sigExists(testDataHash, provider1), true);
     });
-    it("should not allow non admin to call", async () => {
+    it('should not allow non admin to call', async () => {
       await assertRevert(
         instance.addDocumentByAdmin(
           testDataHash,
@@ -334,33 +331,33 @@ contract("Freyr", accounts => {
       );
     });
   });
-  describe("pausable", () => {
-    it("should not allow non-admin to pause or unpause", async () => {
+  describe('pausable', () => {
+    it('should not allow non-admin to pause or unpause', async () => {
       await assertRevert(instance.pause({ from: accounts[1] }));
       await assertRevert(instance.unpause({ from: accounts[1] }));
     });
-    it("should not allow adding documents when paused by admin", async () => {
+    it('should not allow adding documents when paused by admin', async () => {
       const tx = await instance.pause();
-      assert.equal(tx.logs[0].event, "Pause");
+      assert.equal(tx.logs[0].event, 'Pause');
       await assertRevert(
         instance.addDocument(testDataHash, testMetadata, testDataUri, {
-          from: user
+          from: user,
         })
       );
       const tx2 = await instance.unpause();
-      assert.equal(tx2.logs[0].event, "Unpause");
+      assert.equal(tx2.logs[0].event, 'Unpause');
       const tx3 = await instance.addDocument(
         testDataHash,
         testMetadata,
         testDataUri,
         { from: user }
       );
-      assert.equal(tx3.logs[0].event, "FreyrDocumentAdded");
+      assert.equal(tx3.logs[0].event, 'FreyrDocumentAdded');
     });
   });
   // copy paste from documents contract
-  describe("destructible", () => {
-    it("should not allow non-admin to destroy", async () => {
+  describe('destructible', () => {
+    it('should not allow non-admin to destroy', async () => {
       await assertRevert(instance.destroy({ from: accounts[1] }));
     });
     // it("should allow admin to destroy", async () => {
