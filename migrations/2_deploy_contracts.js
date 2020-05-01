@@ -1,5 +1,5 @@
-const StowRecords = artifacts.require("./StowRecords.sol");
+const Freyr = artifacts.require("./Freyr.sol");
 
-module.exports = deployer => {
-  deployer.deploy(StowRecords);
+module.exports = (deployer) => {
+  deployer.deploy(Freyr);
 };
