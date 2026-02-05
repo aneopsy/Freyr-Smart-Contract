@@ -39,7 +39,7 @@
     "truffle": "4.1.11"
   },
   "dependencies": {
-    "@truffle/hdwallet-provider": "^1.0.34",
+    "@truffle/hdwallet-provider": "^1.7.0",
     "dotenv": "^6.0.0",
     "ipfs-mini": "^1.1.2",
     "openzeppelin-solidity": "1.10.0",
