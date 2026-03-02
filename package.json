@@ -24,7 +24,7 @@
     "babel-preset-stage-2": "^6.24.1",
     "babel-preset-stage-3": "^6.24.1",
     "babel-register": "^6.26.0",
-    "eslint": "^5.0.1",
+    "eslint": "^9.39.1",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^2.10.0",
     "eslint-loader": "^2.1.1",
@@ -34,7 +34,7 @@
     "ethereumjs-util": "5.2.0",
     "ganache-cli": "^6.0.3",
     "multihashes": "^0.4.13",
-    "solidity-coverage": "0.5.2",
+    "solidity-coverage": "0.8.16",
     "solium": "1.1.8",
     "truffle": "4.1.11"
   },
